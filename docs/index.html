@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A safer, more supportive mental health community." />
+    <title>Harbor — A gentler place to connect</title>
+    <style>
+      :root { --ink:#15332e; --muted:#5e746f; --cream:#f8f6ee; --mint:#dcefe7; --coral:#f18d73; --white:#fff; }
+      * { box-sizing:border-box; }
+      body { margin:0; color:var(--ink); background:var(--cream); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+      .wrap { width:min(1120px,calc(100% - 40px)); margin:auto; }
+      header { padding:22px 0; display:flex; justify-content:space-between; align-items:center; }
+      .brand { font-weight:800; font-size:1.3rem; letter-spacing:-.04em; } .brand span { color:var(--coral); }
+      .pill { display:inline-block; padding:10px 16px; border-radius:999px; background:var(--ink); color:var(--white); text-decoration:none; font-weight:700; }
+      .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:56px; align-items:center; min-height:620px; padding:60px 0 90px; }
+      h1 { font-size:clamp(3rem,7vw,6rem); line-height:.98; letter-spacing:-.075em; margin:0 0 24px; }
+      .lead { color:var(--muted); font-size:1.16rem; max-width:530px; margin:0 0 30px; }
+      .art { min-height:410px; border-radius:38px; background:var(--mint); padding:28px; position:relative; overflow:hidden; }
+      .sun { width:120px;height:120px;border-radius:50%;background:#ffd88c;position:absolute;right:42px;top:45px; }
+      .hill { position:absolute; width:130%; height:210px; border-radius:50% 50% 0 0; bottom:-65px; left:-15%; background:#8ccdb5; }
+      .hill.two { bottom:-105px; left:15%; background:#4f987e; transform:rotate(-6deg); }
+      .note { position:absolute; left:34px; top:50px; max-width:245px; padding:23px; background:var(--white); border-radius:18px; box-shadow:0 15px 35px #275b4c22; font-size:1.08rem; font-weight:650; }
+      .section { padding:88px 0; } .eyebrow { color:#bc5d45; font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:.78rem; }
+      h2 { font-size:clamp(2rem,4vw,3.5rem); letter-spacing:-.055em; line-height:1.05; margin:9px 0 34px; }
+      .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+      .card { padding:28px; border-radius:22px; background:var(--white); } .card b { display:block; font-size:1.12rem; margin:13px 0 7px; } .card p { margin:0; color:var(--muted); }
+      .icon { font-size:1.75rem; }
+      .callout { background:var(--ink); color:var(--white); border-radius:28px; padding:48px; display:flex; align-items:center; justify-content:space-between; gap:25px; }
+      .callout h2 { margin:0; max-width:600px; } .callout .pill { background:var(--coral); white-space:nowrap; }
+      footer { color:var(--muted); padding:32px 0 45px; font-size:.92rem; }
+      @media(max-width:760px){ .hero{grid-template-columns:1fr;gap:18px;padding-top:35px;min-height:auto}.art{min-height:330px}.cards{grid-template-columns:1fr}.callout{display:block;padding:34px}.callout .pill{margin-top:22px} }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header><div class="brand">harbor<span>.</span></div><a class="pill" href="#support">Find support</a></header>
+      <main>
+        <section class="hero">
+          <div><div class="eyebrow">You belong here</div><h1>A gentler place to connect.</h1><p class="lead">Harbor is a thoughtful community for sharing, learning, and finding peer support—at your own pace.</p><a class="pill" href="#support">Explore the community</a></div>
+          <div class="art" aria-label="A calm landscape illustration"><div class="sun"></div><div class="note">“You don’t have to carry everything alone.”</div><div class="hill"></div><div class="hill two"></div></div>
+        </section>
+        <section class="section"><div class="eyebrow">Built with care</div><h2>Support that feels human.</h2><div class="cards"><article class="card"><div class="icon">♡</div><b>Peer connection</b><p>Share experiences with a community built around empathy and respect.</p></article><article class="card"><div class="icon">☀</div><b>Everyday tools</b><p>Discover gentle wellness practices, workshops, and resources for daily life.</p></article><article class="card"><div class="icon">⌁</div><b>Safety first</b><p>Clear boundaries, privacy controls, and moderation designed for trust.</p></article></div></section>
+        <section class="section" id="support"><div class="callout"><div><div class="eyebrow" style="color:#f7b09b">Start where you are</div><h2>Small steps can make a real difference.</h2></div><a class="pill" href="mailto:support@example.com">Get in touch</a></div></section>
+      </main>
+      <footer>Harbor is a community platform and not a substitute for professional or emergency care. If you are in immediate danger, contact local emergency services.</footer>
+    </div>
+  </body>
+</html>
