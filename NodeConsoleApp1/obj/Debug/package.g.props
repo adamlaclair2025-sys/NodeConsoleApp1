@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <PackageJsonName Condition="$(PackageJsonName) == ''">mental-health-platform</PackageJsonName>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">1.0.0</PackageJsonVersion>
+    <PackageJsonDescription Condition="$(PackageJsonDescription) == ''">Enterprise-scale mental health social platform with peer support, learning, and crisis resources</PackageJsonDescription>
+    <PackageJsonMain Condition="$(PackageJsonMain) == ''">dist/index.js</PackageJsonMain>
+    <PackageJsonScriptsDev Condition="$(PackageJsonScriptsDev) == ''">ts-node src/index.ts</PackageJsonScriptsDev>
+    <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">tsc</PackageJsonScriptsBuild>
+    <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">node dist/index.js</PackageJsonScriptsStart>
+    <PackageJsonScriptsTest Condition="$(PackageJsonScriptsTest) == ''">jest</PackageJsonScriptsTest>
+    <PackageJsonScriptsTestWatch Condition="$(PackageJsonScriptsTestWatch) == ''">jest --watch</PackageJsonScriptsTestWatch>
+    <PackageJsonScriptsTestCoverage Condition="$(PackageJsonScriptsTestCoverage) == ''">jest --coverage</PackageJsonScriptsTestCoverage>
+    <PackageJsonScriptsLint Condition="$(PackageJsonScriptsLint) == ''">eslint src --ext .ts</PackageJsonScriptsLint>
+    <PackageJsonScriptsLintFix Condition="$(PackageJsonScriptsLintFix) == ''">eslint src --ext .ts --fix</PackageJsonScriptsLintFix>
+    <PackageJsonScriptsDbMigrate Condition="$(PackageJsonScriptsDbMigrate) == ''">prisma migrate dev</PackageJsonScriptsDbMigrate>
+    <PackageJsonScriptsDbDeploy Condition="$(PackageJsonScriptsDbDeploy) == ''">prisma migrate deploy</PackageJsonScriptsDbDeploy>
+    <PackageJsonScriptsDbGenerate Condition="$(PackageJsonScriptsDbGenerate) == ''">prisma generate</PackageJsonScriptsDbGenerate>
+    <PackageJsonScriptsDbSeed Condition="$(PackageJsonScriptsDbSeed) == ''">ts-node prisma/seed.ts</PackageJsonScriptsDbSeed>
+    <PackageJsonScriptsDbStudio Condition="$(PackageJsonScriptsDbStudio) == ''">prisma studio</PackageJsonScriptsDbStudio>
+    <PackageJsonKeywords Condition="$(PackageJsonKeywords) == ''">[
+  "mental-health",
+  "social-platform",
+  "peer-support",
+  "learning",
+  "wellness"
+]</PackageJsonKeywords>
+    <PackageJsonAuthor Condition="$(PackageJsonAuthor) == ''"></PackageJsonAuthor>
+    <PackageJsonLicense Condition="$(PackageJsonLicense) == ''">MIT</PackageJsonLicense>
+    <PackageJsonType Condition="$(PackageJsonType) == ''">module</PackageJsonType>
+    <PackageJsonDependenciesPrismaClient Condition="$(PackageJsonDependenciesPrismaClient) == ''">^5.7.1</PackageJsonDependenciesPrismaClient>
+    <PackageJsonDependenciesArgon2 Condition="$(PackageJsonDependenciesArgon2) == ''">^0.31.2</PackageJsonDependenciesArgon2>
+    <PackageJsonDependenciesAxios Condition="$(PackageJsonDependenciesAxios) == ''">^1.6.5</PackageJsonDependenciesAxios>
+    <PackageJsonDependenciesCors Condition="$(PackageJsonDependenciesCors) == ''">^2.8.5</PackageJsonDependenciesCors>
+    <PackageJsonDependenciesDotenv Condition="$(PackageJsonDependenciesDotenv) == ''">^16.3.1</PackageJsonDependenciesDotenv>
+    <PackageJsonDependenciesExpress Condition="$(PackageJsonDependenciesExpress) == ''">^4.18.2</PackageJsonDependenciesExpress>
+    <PackageJsonDependenciesExpressAsyncErrors Condition="$(PackageJsonDependenciesExpressAsyncErrors) == ''">^3.1.1</PackageJsonDependenciesExpressAsyncErrors>
+    <PackageJsonDependenciesHelmet Condition="$(PackageJsonDependenciesHelmet) == ''">^7.1.0</PackageJsonDependenciesHelmet>
+    <PackageJsonDependenciesJsonwebtoken Condition="$(PackageJsonDependenciesJsonwebtoken) == ''">^8.5.1</PackageJsonDependenciesJsonwebtoken>
+    <PackageJsonDependenciesPino Condition="$(PackageJsonDependenciesPino) == ''">^8.17.2</PackageJsonDependenciesPino>
+    <PackageJsonDependenciesPinoHttp Condition="$(PackageJsonDependenciesPinoHttp) == ''">^8.6.1</PackageJsonDependenciesPinoHttp>
+    <PackageJsonDependenciesUuid Condition="$(PackageJsonDependenciesUuid) == ''">^9.0.1</PackageJsonDependenciesUuid>
+    <PackageJsonDependenciesZod Condition="$(PackageJsonDependenciesZod) == ''">^3.22.4</PackageJsonDependenciesZod>
+    <PackageJsonDevdependenciesTypesCors Condition="$(PackageJsonDevdependenciesTypesCors) == ''">^2.8.17</PackageJsonDevdependenciesTypesCors>
+    <PackageJsonDevdependenciesTypesExpress Condition="$(PackageJsonDevdependenciesTypesExpress) == ''">^4.17.21</PackageJsonDevdependenciesTypesExpress>
+    <PackageJsonDevdependenciesTypesJest Condition="$(PackageJsonDevdependenciesTypesJest) == ''">^29.5.11</PackageJsonDevdependenciesTypesJest>
+    <PackageJsonDevdependenciesTypesJsonwebtoken Condition="$(PackageJsonDevdependenciesTypesJsonwebtoken) == ''">^9.0.7</PackageJsonDevdependenciesTypesJsonwebtoken>
+    <PackageJsonDevdependenciesTypesNode Condition="$(PackageJsonDevdependenciesTypesNode) == ''">^20.10.6</PackageJsonDevdependenciesTypesNode>
+    <PackageJsonDevdependenciesTypesSupertest Condition="$(PackageJsonDevdependenciesTypesSupertest) == ''">^6.0.2</PackageJsonDevdependenciesTypesSupertest>
+    <PackageJsonDevdependenciesTypescriptEslintEslintPlugin Condition="$(PackageJsonDevdependenciesTypescriptEslintEslintPlugin) == ''">^6.17.0</PackageJsonDevdependenciesTypescriptEslintEslintPlugin>
+    <PackageJsonDevdependenciesTypescriptEslintParser Condition="$(PackageJsonDevdependenciesTypescriptEslintParser) == ''">^6.17.0</PackageJsonDevdependenciesTypescriptEslintParser>
+    <PackageJsonDevdependenciesDotenvCli Condition="$(PackageJsonDevdependenciesDotenvCli) == ''">^7.3.0</PackageJsonDevdependenciesDotenvCli>
+    <PackageJsonDevdependenciesEslint Condition="$(PackageJsonDevdependenciesEslint) == ''">^8.56.0</PackageJsonDevdependenciesEslint>
+    <PackageJsonDevdependenciesJest Condition="$(PackageJsonDevdependenciesJest) == ''">^29.7.0</PackageJsonDevdependenciesJest>
+    <PackageJsonDevdependenciesPrisma Condition="$(PackageJsonDevdependenciesPrisma) == ''">^5.7.1</PackageJsonDevdependenciesPrisma>
+    <PackageJsonDevdependenciesSupertest Condition="$(PackageJsonDevdependenciesSupertest) == ''">^6.3.3</PackageJsonDevdependenciesSupertest>
+    <PackageJsonDevdependenciesTsJest Condition="$(PackageJsonDevdependenciesTsJest) == ''">^29.1.1</PackageJsonDevdependenciesTsJest>
+    <PackageJsonDevdependenciesTsNode Condition="$(PackageJsonDevdependenciesTsNode) == ''">^10.9.2</PackageJsonDevdependenciesTsNode>
+    <PackageJsonDevdependenciesTypescript Condition="$(PackageJsonDevdependenciesTypescript) == ''">^5.3.3</PackageJsonDevdependenciesTypescript>
+  </PropertyGroup>
+</Project>

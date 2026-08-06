@@ -1,0 +1,1152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER & IDENTITY
+// ============================================================================
+
+model User {
+  id                    String     @id @default(cuid())
+  email                 String     @unique
+  password              String
+  status                UserStatus @default(active)
+  emailVerified         DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  deletedAt             DateTime?
+
+  // Relations
+  profile               UserProfile?
+  roles                 UserRole[]
+  posts                 Post[]
+  comments              Comment[]
+  reactions             Reaction[]
+  communityMemberships  CommunityMember[]
+  communities           Community[]
+  journals              JournalEntry[]
+  notifications         Notification[]
+  devices               Device[]
+  sessions              Session[]
+  preferences           UserPreference?
+  privacySettings       PrivacySettings?
+  accessibilitySettings AccessibilitySettings?
+  emergencyContacts     EmergencyContact[]
+  trustedContacts       TrustedContact[]
+  consents              Consent[]
+  reports               Report[]
+  moderationAppeals    ModerationAppeal[]
+
+  // Messaging relations
+  createdConversations  Conversation[]
+  conversationMemberships ConversationMember[]
+  messages              Message[]
+  messageReports        MessageReport[]
+  resolvedMessageReports MessageReport[] @relation("MessageReportResolver")
+
+  // Peer Support relations
+  volunteerProfile      Volunteer?
+  peerSupportMatches    PeerSupportMatch[]
+  resolvedReports       PeerSupportIncident[] @relation("PeerSupportIncidentResolver")
+
+  @@index([email])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  displayName       String
+  username          String?  @unique
+  bio               String?  @db.VarChar(500)
+  avatar            String?  // URL to avatar image
+  banner            String?  // URL to banner image
+  pronouns          String?
+  website           String?
+  location          String?
+  timezone          String?  @default("UTC")
+  isVerified        Boolean  @default(false)
+  isPublic          Boolean  @default(true)
+  recoveryMilestones Json?   // Private milestones JSON
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([username])
+}
+
+enum UserStatus {
+  active
+  suspended
+  deactivated
+  deleted
+}
+
+model UserRole {
+  id       String @id @default(cuid())
+  userId   String
+  role     Role
+  grantedAt DateTime @default(now())
+
+  // Relations
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@index([role])
+}
+
+enum Role {
+  guest
+  user
+  community_moderator
+  senior_moderator
+  support_staff
+  admin
+}
+
+model UserPreference {
+  id                          String   @id @default(cuid())
+  userId                      String   @unique
+  language                    String   @default("en")
+  timezone                    String   @default("UTC")
+  notificationsEnabled        Boolean  @default(true)
+  emailNotificationsEnabled   Boolean  @default(false)
+  pushNotificationsEnabled    Boolean  @default(true)
+  digestFrequency             String   @default("daily") // daily, weekly, never
+  marketingEmailsEnabled      Boolean  @default(false)
+  quietHourStart              String?  // HH:mm format
+  quietHourEnd                String?
+  allowDirectMessages         Boolean  @default(true)
+  allowMentions               Boolean  @default(true)
+  allowCommunityInvites       Boolean  @default(true)
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  // Relations
+  user                        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PrivacySettings {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  profileVisibility       String   @default("public") // public, friends, private
+  searchableByOthers      Boolean  @default(true)
+  showOnlineStatus        Boolean  @default(false)
+  showActivityStatus      Boolean  @default(false)
+  allowDataExport         Boolean  @default(true)
+  allowAnalytics          Boolean  @default(false)
+  shareHealthData         Boolean  @default(false)
+  dataRetentionMonths     Int      @default(12)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // Relations
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model AccessibilitySettings {
+  id                      String  @id @default(cuid())
+  userId                  String  @unique
+  reducedMotion           Boolean @default(false)
+  highContrast            Boolean @default(false)
+  fontSize                Int     @default(16) // px
+  fontFamily              String  @default("system")
+  reducedTransparency     Boolean @default(false)
+  screenReaderOptimized   Boolean @default(false)
+  keyboardNavigationOnly  Boolean @default(false)
+  dyslexiaFriendlyFont    Boolean @default(false)
+  textSpacing             Float   @default(1.0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  // Relations
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmergencyContact {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  relationship    String?
+  phone           String
+  email           String?
+  notes           String?  @db.VarChar(500)
+  isVerified      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model TrustedContact {
+  id              String   @id @default(cuid())
+  userId          String
+  trustedUserId   String
+  name            String?
+  canViewJournals Boolean  @default(false)
+  canViewHealth   Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Device {
+  id              String   @id @default(cuid())
+  userId          String
+  deviceId        String
+  deviceName      String?
+  deviceType      String   @default("web") // web, ios, android
+  os              String?
+  browser         String?
+  ipAddress       String?
+  userAgent       String?  @db.Text
+  lastUsedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+}
+
+model Session {
+  id              String   @id @default(cuid())
+  userId          String
+  deviceId        String?
+  refreshToken    String   @unique
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  ipAddress       String?
+  userAgent       String?  @db.Text
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Consent {
+  id              String   @id @default(cuid())
+  userId          String
+  consentType     String   // privacy_policy, terms_of_service, data_processing, marketing_emails
+  version         String
+  givenAt         DateTime @default(now())
+  revokedAt       DateTime?
+  ipAddress       String?
+  userAgent       String?  @db.Text
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([consentType])
+}
+
+// ============================================================================
+// SOCIAL FEED & POSTS
+// ============================================================================
+
+model Post {
+  id                  String     @id @default(cuid())
+  authorId            String
+  communityId         String?
+  content             String     @db.Text
+  visibility          String     @default("public") // public, private, community, followers
+  audience            String     @default("everyone") // everyone, community-members, trusted-contacts
+  isAnonymous         Boolean    @default(false)
+  anonymousAlias      String?
+  status              String     @default("published") // draft, published, archived, removed
+  contentWarning      String?
+  triggerWarnings     String[]   @default([]) // JSON array of trigger warnings
+  allowComments       Boolean    @default(true)
+  allowReactions      Boolean    @default(true)
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  deletedAt           DateTime?
+  publishedAt         DateTime?  @default(now())
+
+  // Relations
+  author              User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community           Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  media               PostMedia[]
+  comments            Comment[]
+  reactions           Reaction[]
+  reports             Report[]
+
+  @@index([authorId])
+  @@index([communityId])
+  @@index([visibility])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model PostMedia {
+  id              String   @id @default(cuid())
+  postId          String
+  type            String   // image, video, audio
+  url             String
+  altText         String?
+  caption         String?  @db.VarChar(500)
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model Comment {
+  id              String   @id @default(cuid())
+  authorId        String
+  postId          String
+  parentCommentId String?
+  content         String   @db.Text
+  status          String   @default("published") // draft, published, removed
+  moderationState String   @default("active") // active, reviewed, locked
+  isLocked        Boolean  @default(false)
+  isAnonymous     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  author          User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post            Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentComment   Comment?          @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[]         @relation("CommentReplies")
+  reactions       Reaction[]
+  reports         Report[]
+
+  @@index([authorId])
+  @@index([postId])
+  @@index([parentCommentId])
+}
+
+model Reaction {
+  id              String   @id @default(cuid())
+  userId          String
+  postId          String?
+  commentId       String?
+  reactionType    String   // support, relate, listening, hug, thank_you, proud, strength, thinking, helpful, understand, not_alone
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post            Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment         Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId, commentId, reactionType])
+  @@index([userId])
+  @@index([postId])
+  @@index([commentId])
+}
+
+// ============================================================================
+// COMMUNITIES
+// ============================================================================
+
+model Community {
+  id                  String     @id @default(cuid())
+  creatorId           String
+  name                String
+  slug                String     @unique
+  description         String?    @db.Text
+  avatar              String?
+  banner              String?
+  visibility          String     @default("public") // public, private, hidden, invite-only
+  joinPolicy          String     @default("open") // open, approve, invite
+  moderationMode     String     @default("standard") // standard, review, strict
+  requiresApproval    Boolean    @default(false)
+  memberCount         Int        @default(0)
+  isVerified          Boolean    @default(false)
+  isStaffLed          Boolean    @default(false)
+  rules               String[]   @default([]) // JSON array of community rules
+  guidelines          String?    @db.Text
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  archivedAt          DateTime?
+
+  // Relations
+  creator             User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  members             CommunityMember[]
+  posts               Post[]
+  reports             Report[]
+
+  @@index([creatorId])
+  @@index([slug])
+  @@index([visibility])
+}
+
+model CommunityMember {
+  id              String   @id @default(cuid())
+  communityId     String
+  userId          String
+  role            String   @default("member") // member, moderator, senior_moderator
+  joinedAt        DateTime @default(now())
+  bannedUntil     DateTime?
+
+  // Relations
+  community       Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@index([communityId])
+  @@index([userId])
+}
+
+model CommunityBlock {
+  id              String   @id @default(cuid())
+  communityId     String
+  userId          String
+  blockedByUserId String
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@unique([communityId, userId])
+  @@index([communityId])
+  @@index([userId])
+}
+
+model CommunityMute {
+  id              String   @id @default(cuid())
+  communityId     String
+  userId          String
+  mutedByUserId   String
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@unique([communityId, userId])
+  @@index([communityId])
+  @@index([userId])
+}
+
+model PostBlock {
+  id              String   @id @default(cuid())
+  postId          String
+  userId          String
+  blockedByUserId String
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model PostMute {
+  id              String   @id @default(cuid())
+  postId          String
+  userId          String
+  mutedByUserId   String
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// ============================================================================
+// REPORTING & MODERATION
+// ============================================================================
+
+model Report {
+  id                String   @id @default(cuid())
+  reporterId        String
+  postId            String?
+  commentId         String?
+  communityId       String?
+  userId            String?
+  reason            String   // spam, harassment, violence, hate_speech, self_harm, misinformation, other
+  description       String?  @db.Text
+  status            String   @default("open") // open, acknowledged, resolved, dismissed
+  priority          String   @default("normal") // low, normal, high, critical
+  reviewState       String?  @default("pending") // pending, reviewed, escalated
+  evidence          String[] @default([])
+  appealReason      String?  @db.Text
+  resolution        String?  @db.Text
+  resolvedBy        String?
+  resolvedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  reporter          User     @relation(fields: [reporterId], references: [id])
+  post              Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment           Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  community         Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  appeals           ModerationAppeal[]
+
+  @@index([reporterId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model ModerationAppeal {
+  id            String   @id @default(cuid())
+  reportId      String
+  userId        String
+  reason        String   @db.Text
+  status        String   @default("submitted") // submitted, under_review, approved, rejected
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  resolution    String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  report        Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================================================
+// JOURNALS
+// ============================================================================
+
+model JournalEntry {
+  id              String   @id @default(cuid())
+  userId          String
+  content         String   @db.Text
+  moodTags        String[] @default([]) // JSON array of moods
+  isEncrypted     Boolean  @default(false)
+  encryptionKey   String?  // Encrypted key stored
+  isPrivate       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// WORKSHOPS & LEARNING
+// ============================================================================
+
+model Workshop {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?  @db.Text
+  slug            String   @unique
+  content         String?  @db.Text
+  contentType     String   @default("text") // text, video, audio
+  mediaUrl        String?
+  duration        Int?     // in seconds
+  difficulty      String   @default("beginner")
+  category        String[]
+  isPublished     Boolean  @default(false)
+  isApproved      Boolean  @default(false)
+  isClinicalReview Boolean @default(false)
+  creatorId       String?
+  viewCount       Int      @default(0)
+  completionRate  Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([category])
+}
+
+model LearningProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  workshopId      String
+  status          String   @default("started") // started, in_progress, completed
+  progressPercent Float    @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, workshopId])
+}
+
+// ============================================================================
+// CRISIS RESOURCES
+// ============================================================================
+
+model CrisisResource {
+  id              String   @id @default(cuid())
+  name            String
+  organization    String?
+  description     String?  @db.Text
+  country         String
+  region          String?
+  languages       String[] @default(["en"])
+  phone           String?
+  sms             Boolean  @default(false)
+  chat            Boolean  @default(false)
+  website         String?
+  hoursInfo       String?  @db.Text
+  costInfo        String?
+  accessibility   String[]
+  categories      String[]
+  featured        Boolean  @default(false)
+  verifiedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([country])
+  @@index([region])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String   // comment_reply, reaction, mention, message, community_update, resource_alert
+  title           String
+  message         String   @db.Text
+  actionUrl       String?
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// MESSAGING & REAL-TIME COMMUNICATION
+// ============================================================================
+
+model Conversation {
+  id                String     @id @default(cuid())
+  type              ConversationType @default(direct)
+  name              String?    // Only for group conversations
+  description       String?    @db.VarChar(500)
+  createdBy         String
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  archivedAt        DateTime?
+  isEncrypted       Boolean    @default(false)
+  encryptionKeyId   String?    // Reference to encryption key for future E2E
+  lastMessageAt     DateTime?
+
+  // Relations
+  creator           User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  members           ConversationMember[]
+  messages          Message[]
+
+  @@index([createdBy])
+  @@index([type])
+  @@index([lastMessageAt])
+  @@index([archivedAt])
+}
+
+enum ConversationType {
+  direct
+  group
+}
+
+model ConversationMember {
+  id                String     @id @default(cuid())
+  conversationId    String
+  userId            String
+  role              ConversationRole @default(member)
+  joinedAt          DateTime   @default(now())
+  mutedUntil        DateTime?  // User muted this conversation until this time
+  leftAt            DateTime?  // Soft delete - user left conversation
+
+  // Relations
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageReads      MessageRead[]
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@index([leftAt])
+}
+
+enum ConversationRole {
+  member
+  moderator
+  owner
+}
+
+model Message {
+  id                String     @id @default(cuid())
+  conversationId    String
+  authorId          String
+  content           String     @db.Text
+  isDeleted         Boolean    @default(false)
+  deletedAt         DateTime?
+  editedAt          DateTime?
+  isEncrypted       Boolean    @default(false)
+  encryptionKeyId   String?
+  createdAt         DateTime   @default(now())
+
+  // Relations
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author            User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachments       MessageAttachment[]
+  readBy            MessageRead[]
+
+  @@index([conversationId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([isDeleted])
+}
+
+model MessageAttachment {
+  id                String     @id @default(cuid())
+  messageId         String
+  fileUrl           String     @db.Text
+  fileName          String
+  mimeType          String
+  size              Int        // in bytes
+  uploadedAt        DateTime   @default(now())
+
+  // Relations
+  message           Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model MessageRead {
+  id                String     @id @default(cuid())
+  messageId         String
+  userId            String     // Through ConversationMember, but direct for faster queries
+  conversationMemberId String
+  readAt            DateTime   @default(now())
+
+  // Relations
+  message           Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  conversationMember ConversationMember @relation(fields: [conversationMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@index([readAt])
+}
+
+model MessageReport {
+  id                String     @id @default(cuid())
+  messageId         String
+  reporterId        String
+  reason            String
+  description       String?    @db.Text
+  status            ReportStatus @default(pending)
+  createdAt         DateTime   @default(now())
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  resolutionNotes   String?    @db.Text
+
+  // Relations
+  reporter          User       @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  resolver          User?      @relation("MessageReportResolver", fields: [resolvedBy], references: [id])
+
+  @@index([messageId])
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ReportStatus {
+  pending
+  reviewing
+  resolved
+  dismissed
+}
+
+// ============================================================================
+// AUDIT & MONITORING
+// ============================================================================
+
+model AuditLog {
+  id              String   @id @default(cuid())
+  userId          String?
+  action          String
+  resource        String
+  resourceId      String?
+  changes         Json?
+  ipAddress       String?
+  userAgent       String?  @db.Text
+  timestamp       DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
+
+model ErrorLog {
+  id              String   @id @default(cuid())
+  code            String
+  message         String   @db.Text
+  stackTrace      String?  @db.Text
+  context         Json?
+  userId          String?
+  timestamp       DateTime @default(now())
+
+  @@index([code])
+  @@index([timestamp])
+}
+
+// ============================================================================
+// PEER SUPPORT VOLUNTEER PROGRAM
+// ============================================================================
+
+model Volunteer {
+  id                    String     @id @default(cuid())
+  userId                String     @unique
+  status                VolunteerStatus @default(pending_verification)
+  verificationStatus    VerificationStatus @default(unverified)
+  certificationLevel    CertificationLevel @default(none)
+  specialties           String[]   // e.g., ["anxiety", "depression", "grief"]
+  languages             String[]   @default(["en"]) // Language codes
+  timezone              String     @default("UTC")
+  bio                   String?    @db.VarChar(1000)
+  maximumCaseLoad       Int        @default(5)
+  currentCaseLoad       Int        @default(0)
+  isActive              Boolean    @default(true)
+
+  supportResourcesUsed  String?    // Link to resources volunteer used
+  burnoutRiskLevel      BurnoutRisk @default(low)
+
+  applicationDate       DateTime   @default(now())
+  verificationDate      DateTime?
+  firstCertificationDate DateTime?
+  inactiveAt            DateTime?
+
+  // Relations
+  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  certifications        VolunteerCertification[]
+  availability          VolunteerAvailability[]
+  peerSupportMatches    PeerSupportMatch[]
+  wellnessCheckIns      VolunteerWellnessCheckIn[]
+  supervisor            VolunteerSupervisor?
+  incidents             PeerSupportIncident[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([certificationLevel])
+}
+
+enum VolunteerStatus {
+  pending_verification
+  verified
+  certified
+  active
+  inactive
+  suspended
+  terminated
+}
+
+enum VerificationStatus {
+  unverified
+  pending_review
+  verified
+  rejected
+  expired
+}
+
+enum CertificationLevel {
+  none
+  basic
+  intermediate
+  advanced
+  specialist
+}
+
+enum BurnoutRisk {
+  low
+  moderate
+  high
+  critical
+}
+
+model VolunteerCertification {
+  id                String     @id @default(cuid())
+  volunteerId       String
+  type              CertificationType
+  description       String?    @db.Text
+  completedAt       DateTime
+  expiresAt         DateTime
+  supervisorReviewedAt DateTime?
+  supervisorReviewedBy String?
+  isApproved        Boolean    @default(false)
+  reviewNotes       String?    @db.Text
+
+  // Relations
+  volunteer         Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@index([volunteerId])
+  @@index([type])
+  @@index([expiresAt])
+  @@unique([volunteerId, type, completedAt])
+}
+
+enum CertificationType {
+  listening_skills
+  trauma_informed_support
+  crisis_response
+  suicide_prevention
+  peer_support_fundamentals
+  mental_health_awareness
+  boundary_setting
+  self_care_for_supporters
+}
+
+model VolunteerAvailability {
+  id                String     @id @default(cuid())
+  volunteerId       String
+  dayOfWeek         Int        // 0 = Sunday, 6 = Saturday
+  startTime         String     // HH:MM format
+  endTime           String     // HH:MM format
+  timezone          String     @default("UTC")
+  isActive          Boolean    @default(true)
+
+  // Relations
+  volunteer         Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, dayOfWeek, startTime, endTime])
+  @@index([volunteerId])
+}
+
+model VolunteerWellnessCheckIn {
+  id                String     @id @default(cuid())
+  volunteerId       String
+  emotionalStatus   EmotionalStatus
+  burnoutRiskScore  Int        // 0-100
+  hoursWorkedThisMonth Int
+  supportUsed       String?    // If they used resources
+  notes             String?    @db.Text
+  createdAt         DateTime   @default(now())
+
+  // Relations
+  volunteer         Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@index([volunteerId])
+  @@index([createdAt])
+}
+
+enum EmotionalStatus {
+  thriving
+  managing
+  struggling
+  overwhelmed
+  in_crisis
+}
+
+model VolunteerSupervisor {
+  id                String     @id @default(cuid())
+  volunteerId       String     @unique
+  supervisorUserId  String
+  assignedAt        DateTime   @default(now())
+  caseLoadLimit     Int        @default(20) // Supervisor case load
+
+  // Relations
+  volunteer         Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  @@index([volunteerId])
+  @@index([supervisorUserId])
+}
+
+model PeerSupportMatch {
+  id                String     @id @default(cuid())
+  volunteerId       String
+  userId            String
+  status            MatchStatus @default(pending_acceptance)
+  notes             String?    @db.VarChar(500)
+  createdAt         DateTime   @default(now())
+  startedAt         DateTime?
+  endedAt           DateTime?
+  endReason         String?
+
+  // Statistics
+  sessionsCompleted Int        @default(0)
+  lastSessionAt     DateTime?
+  userSatisfaction  Int?       // 1-5 rating
+
+  // Relations
+  volunteer         Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions          PeerSupportSession[]
+  escalations       PeerSupportEscalation[]
+  incidents         PeerSupportIncident[]
+
+  @@unique([volunteerId, userId])
+  @@index([volunteerId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum MatchStatus {
+  pending_acceptance
+  active
+  paused
+  completed
+  terminated
+  escalated
+}
+
+model PeerSupportSession {
+  id                String     @id @default(cuid())
+  matchId           String
+  sessionDate       DateTime
+  duration          Int        // Minutes
+  sessionMethod     SessionMethod
+  notes             String?    @db.Text
+  outcome           SessionOutcome
+  volunteerNotes    String?    @db.Text
+  userReflection    String?    @db.Text
+
+  // Safety tracking
+  crisisIndicators  Boolean    @default(false)
+  escalated         Boolean    @default(false)
+
+  createdAt         DateTime   @default(now())
+
+  // Relations
+  match             PeerSupportMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@index([sessionDate])
+  @@index([escalated])
+}
+
+enum SessionMethod {
+  messaging
+  voice_call
+  video_call
+  in_person
+}
+
+enum SessionOutcome {
+  supportive
+  processing
+  resource_shared
+  referred_to_professional
+  crisis_response_initiated
+  no_progress
+}
+
+model PeerSupportEscalation {
+  id                String     @id @default(cuid())
+  matchId           String
+  reason            EscalationReason
+  description       String?    @db.Text
+  escalatedBy       String     // User or Volunteer ID
+  escalatedAt       DateTime   @default(now())
+  escalatedTo       String?    // Supervisor or Clinical ID
+  status            EscalationStatus @default(pending_review)
+  resolution        String?    @db.Text
+  resolvedAt        DateTime?
+
+  // Relations
+  match             PeerSupportMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@index([status])
+  @@index([escalatedAt])
+}
+
+enum EscalationReason {
+  crisis_indicators
+  safety_concern
+  boundary_violation
+  skill_mismatch
+  user_request
+  volunteer_request
+  supervisor_review
+  incident_report
+  lost_contact
+}
+
+enum EscalationStatus {
+  pending_review
+  in_progress
+  resolved
+  closed
+}
+
+model PeerSupportIncident {
+  id                String     @id @default(cuid())
+  matchId           String
+  volunteerId       String
+  incidentType      IncidentType
+  description       String?    @db.Text
+  severity          IncidentSeverity
+  reportedBy        String
+  reportedAt        DateTime   @default(now())
+  investigation     String?    @db.Text
+  resolved          Boolean    @default(false)
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  action            String?    @db.Text
+
+  // Relations
+  match             PeerSupportMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  volunteer         Volunteer  @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  resolver          User?      @relation("PeerSupportIncidentResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+
+  @@index([matchId])
+  @@index([volunteerId])
+  @@index([severity])
+  @@index([resolved])
+}
+
+enum IncidentType {
+  boundary_violation
+  inappropriate_advice
+  conflict
+  wellness_concern
+  policy_violation
+  other
+}
+
+enum IncidentSeverity {
+  minor
+  moderate
+  serious
+  critical
+}
